@@ -75,7 +75,7 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 		// print_r($paymee);
 		// echo '</pre>';
 		$timer = (strtotime($order->order_date) + (60 * 60 * 4));
-		$valid = ($timer < time());
+		$valid = ($timer > time());
 		if(isset($_GET['forceblock'])) {
 			$valid = false;
 		}
