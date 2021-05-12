@@ -88,7 +88,7 @@ if ( ! class_exists( 'WC_Woo_PayMee_Pix' ) ) :
 		 */
 		public function plugin_action_links( $links ) {
 			$plugin_links   = array();
-			$plugin_links[] = '<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=paymee-pix' ) ) . '">' . __( 'Settings', 'woo-paymee' ) . '</a>';
+			$plugin_links[] = '<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=paymee_pix' ) ) . '">' . __( 'Settings', 'woo-paymee' ) . '</a>';
 
 			return array_merge( $plugin_links, $links );
 		}
