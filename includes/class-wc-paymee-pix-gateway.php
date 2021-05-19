@@ -83,7 +83,13 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 		<script src="<?php echo plugin_dir_url( __DIR__ ) ; ?>assets/clipboard.min.js"></script>
 		<script src="<?php echo plugin_dir_url( __DIR__ ) ; ?>assets/jquery.countdown.min.js"></script>
 		<div class="instrus">
-			<?php if($valid): ?>
+			<?php if (in_array($order->get_status(), ['processing', 'complete'])): ?>
+				<h2 class="fa fa-thumbs-up" style="display:flex;align-items:center;justify-content:center;font-size:60px;width:100px;height:100px;display:block;line-height:100px;text-align:center;margin: 30px auto;color: #ddd;border:4px solid #ddd;border-radius:100px;"></h2><br/>
+				<strong>PAGAMENTO CONFIRMADO!</strong></br>
+				<p>Seu pagamento foi confirmado com sucesso.</p><br/>
+				<a class="close" href="<?php echo get_site_url(); ?>">VOLTAR PARA A LOJA</a>
+				<style>.fa-thumbs-up:before{top:-8px;position:relative;}.woocommerce-thankyou-order-received,.woocommerce-customer-details,.woocommerce-order-details,ul.order_details{display:none}</style>
+			<?php elseif($valid): ?>
 				<?php if($paymee->response->instructions->steps->qrCode): ?>
 					<img width="250" height="auto" src="<?php echo plugin_dir_url( __DIR__ ) ; ?>assets/images/pix-bc-logo-1--.png" /><br/>
 					<script>
@@ -107,6 +113,11 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 					})
 					</script>
 				<?php endif; ?>
+				<h2 class="fa fa-exclamation" style="font-size:60px;width:100px;height:100px;display:block;line-height:100px;text-align:center;margin: 30px auto;color: #ddd;border:4px solid #ddd;border-radius:100px;"></h2><br/>
+				<strong>O tempo expirou.</strong></br>
+				<p>Para pagar finalize sua compra novamente</p><br/>
+				<a class="close" href="<?php echo get_site_url(); ?>">FECHAR</a>
+				<style>.woocommerce-thankyou-order-received,.woocommerce-customer-details,.woocommerce-order-details,ul.order_details{display:none}</style>
 			<?php else: ?>
 				<h2 class="fa fa-exclamation" style="font-size:60px;width:100px;height:100px;display:block;line-height:100px;text-align:center;margin: 30px auto;color: #ddd;border:4px solid #ddd;border-radius:100px;"></h2><br/>
 				<strong>O tempo expirou.</strong></br>
