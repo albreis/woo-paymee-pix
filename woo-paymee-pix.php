@@ -1,12 +1,14 @@
 <?php
 /**
- * Plugin Name: PayMee Pix for WooCommerce
- * Plugin URI:  https://github.com/albreis/paymee-pix
- * Author:      Albreis - Design & Programação
- * Author URI:  https://albreis.com.br
- * Version:     1.0.0
- * License:     GPLv2 or later
- * Text Domain: woo-paymee-pix
+ * Plugin Name:  PayMee Pix For WooCommerce
+ * Plugin URI:   https://www.paymee.com.br/
+ * Description:  Plugin WooCommerce para receber seus pagamentos via PIX.
+ * Author:       Raioweb.com.br | Albreis - Design & Programação
+ * Author URI:   https://github.com/paymeebrasil/woocommerce-paymee
+ * Requires PHP: 7.2
+ * Version:      1.0.0
+ * License:      GPLv2 or later
+ * Text Domain:  woo-paymee-pix
  * @package Woo_PayMee_Pix
  */
 
@@ -161,8 +163,23 @@ if ( ! class_exists( 'WC_Woo_PayMee_Pix' ) ) :
 		public function woocommerce_missing_notice() {
 			include dirname( __FILE__ ) . '/includes/admin/views/html-notice-missing-woocommerce.php';
 		}
+
 	}
 
 	add_action( 'plugins_loaded', array( 'WC_Woo_PayMee_Pix', 'get_instance' ) );
 
 endif;
+
+function pix_reload() {
+	$id = isset($_REQUEST['param']) ? trim($_REQUEST['param']) : "";
+	$status = 0;
+	if(!empty($id)){
+		$order = new WC_Order($id);
+		$status = $order->get_status();
+	}
+	wp_send_json($status);
+	wp_die();
+}
+
+add_action('wp_ajax_pix_reload', 'pix_reload');
+add_action('wp_ajax_nopriv_pix_reload', 'pix_reload');

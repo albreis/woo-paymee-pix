@@ -13,78 +13,79 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * WooCommerce PayMee gateway.
  */
-
 class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
-
 	
 	/**
 	 * Constructor for the gateway.
 	 */
-	public function __construct() {
+	public function __construct() 
+	{
 		$this->id                 = 'paymee_pix';
 		$this->icon               = apply_filters( 'woocommerce_paymee_pix_icon', plugins_url( 'assets/images/icon-pix.png?v2', plugin_dir_path( __FILE__ ) ) );
 		$this->method_title       = __( 'PayMee Pix', 'woocommerce-paymee-pix' );
 		$this->method_description = __( 'Aceite transferência ou dinheiro instantaneamente com a PayMee.', 'woocommerce-paymee' );
 
-		// Load the form fields.
 		$this->init_form_fields();
 
-		// Load the settings.
 		$this->init_settings();
 
-		// Define user set variables.
 		$this->title             = $this->get_option( 'title' );
 		$this->description       = $this->get_option( 'description' );
-		$this->api_key             = $this->get_option( 'api_key' );
-		$this->api_token             = $this->get_option( 'api_token' );
-		$this->sandbox_api_key             = $this->get_option( 'api_key' );
-		$this->sandbox_api_token             = $this->get_option( 'api_token' );
+		$this->api_key           = $this->get_option( 'api_key' );
+		$this->api_token         = $this->get_option( 'api_token' );
+		$this->sandbox_api_key   = $this->get_option( 'api_key' );
+		$this->sandbox_api_token = $this->get_option( 'api_token' );
 		$this->method            = $this->get_option( 'method', 'direct' );
-		$this->tc_transfer         = $this->get_option( 'tc_transfer', 'yes' );
-		$this->tc_cash       = $this->get_option( 'tc_cash', 'yes' );
+		$this->tc_transfer       = $this->get_option( 'tc_transfer', 'yes' );
+		$this->tc_cash       	 = $this->get_option( 'tc_cash', 'yes' );
 		$this->send_only_total   = $this->get_option( 'send_only_total', 'no' );
 		$this->invoice_prefix    = $this->get_option( 'invoice_prefix', 'WC-' );
 		$this->sandbox           = $this->get_option( 'sandbox', 'no' );
 		$this->debug             = $this->get_option( 'debug' );
-		$this->order_button_text  = __( $this->get_option( 'texto_botao' ) , 'woocommerce-paymee' );
+		$this->order_button_text = __( $this->get_option( 'texto_botao' ) , 'woocommerce-paymee' );
 
-		if(is_admin()) {
+		if(is_admin()) 
+		{
             add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
-        }
+		}
+		
         add_action( 'woocommerce_thankyou_' . $this->id, array( $this, 'thankyou_page' ) );
       
         add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instructions' ), 10, 3 );
 
-		// Active logs.
-		if ( 'yes' == $this->debug ) {
-			if ( function_exists( 'wc_get_logger' ) ) {
+		if ( 'yes' == $this->debug ) 
+		{
+			if ( function_exists( 'wc_get_logger' ) ) 
+			{
 				$this->log = wc_get_logger();
 			} else {
 				$this->log = new WC_Logger();
 			}
 		}
-		// Set the API.
+		
 		$this->api = new WC_Woo_PayMee_Pix_API( $this );
 		add_action('woocommerce_api_paymee_pix_ipn_listener', array($this, 'paymee_pix_ipn_listener'));
 	}
 
-    public function thankyou_page($order_id) {
+	public function thankyou_page($order_id) 
+	{
 		$order = new WC_Order($order_id);
 		$paymee = $order->get_meta('paymee_pix_info');
-		// echo '<pre>';
-		// print_r($paymee);
-		// echo '</pre>';
 		$timer = (strtotime($order->order_date) + (60 * 60 * 4));
 		$valid = ($timer > time());
 		if(isset($_GET['forceblock'])) {
 			$valid = false;
 		}
 		?>
-		<script src="<?php echo plugin_dir_url( __DIR__ ) ; ?>assets/clipboard.min.js"></script>
-		<script src="<?php echo plugin_dir_url( __DIR__ ) ; ?>assets/jquery.countdown.min.js"></script>
+		
+		<script src="<?php echo plugin_dir_url( __DIR__ ); ?>assets/clipboard.min.js"></script>
+		<script src="<?php echo plugin_dir_url( __DIR__ ); ?>assets/jquery.countdown.min.js"></script>
+
 		<div class="instrus">
 			<?php if (in_array($order->get_status(), ['processing', 'complete'])): ?>
-				<h2 class="fa fa-thumbs-up" style="display:flex;align-items:center;justify-content:center;font-size:60px;width:100px;height:100px;display:block;line-height:100px;text-align:center;margin: 30px auto;color: #ddd;border:4px solid #ddd;border-radius:100px;"></h2><br/>
+				<h2 style="display:flex;align-items:center;justify-content:center;font-size:60px;width:100px;height:100px;display:block;line-height:100px;text-align:center;margin: 30px auto;color: #ddd;border:4px solid #ddd;border-radius:100px;">
+					<svg style="transform:scale(0.7)" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="thumbs-up" class="svg-inline--fa fa-thumbs-up fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M104 224H24c-13.255 0-24 10.745-24 24v240c0 13.255 10.745 24 24 24h80c13.255 0 24-10.745 24-24V248c0-13.255-10.745-24-24-24zM64 472c-13.255 0-24-10.745-24-24s10.745-24 24-24 24 10.745 24 24-10.745 24-24 24zM384 81.452c0 42.416-25.97 66.208-33.277 94.548h101.723c33.397 0 59.397 27.746 59.553 58.098.084 17.938-7.546 37.249-19.439 49.197l-.11.11c9.836 23.337 8.237 56.037-9.308 79.469 8.681 25.895-.069 57.704-16.382 74.757 4.298 17.598 2.244 32.575-6.148 44.632C440.202 511.587 389.616 512 346.839 512l-2.845-.001c-48.287-.017-87.806-17.598-119.56-31.725-15.957-7.099-36.821-15.887-52.651-16.178-6.54-.12-11.783-5.457-11.783-11.998v-213.77c0-3.2 1.282-6.271 3.558-8.521 39.614-39.144 56.648-80.587 89.117-113.111 14.804-14.832 20.188-37.236 25.393-58.902C282.515 39.293 291.817 0 312 0c24 0 72 8 72 81.452z"></path></svg>
+				</h2><br/>
 				<strong>PAGAMENTO CONFIRMADO!</strong></br>
 				<p>Seu pagamento foi confirmado com sucesso.</p><br/>
 				<a class="close" href="<?php echo get_site_url(); ?>">VOLTAR PARA A LOJA</a>
@@ -107,14 +108,41 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 					<button class="btn" data-clipboard-target="#qrcode" onclick="alert('Código copiado!')">
 						COPIAR CÓDIGO QR
 					</button><br/><br/>
+
 					<script>
 					window.addEventListener('load', function(){
 						new ClipboardJS('.btn');
 					})
 					</script>
+					
+					<script>
+
+					window.addEventListener('load', function(){
+
+						var ajaxurl = "<?= admin_url('admin-ajax.php');?>";
+						var id = <?= $order_id;?>;
+
+						var postdata= {'action':'pix_reload' , 'param':id};
+
+  						function verificaStatus() 
+  						{
+							jQuery.get(ajaxurl, postdata, function(response) 
+							{
+								if(response == 'processing' || response == 'complete') {
+									location.reload()
+								}
+								setTimeout(verificaStatus, 5000)
+							});
+						}
+						verificaStatus()
+						new ClipboardJS('.btn');
+					})
+					</script>
 				<?php endif; ?>
 			<?php else: ?>
-				<h2 class="fa fa-exclamation" style="font-size:60px;width:100px;height:100px;display:block;line-height:100px;text-align:center;margin: 30px auto;color: #ddd;border:4px solid #ddd;border-radius:100px;"></h2><br/>
+				<h2 style="font-size:60px;width:100px;height:100px;display:flex;align-items:center;justify-content:center;margin: 30px auto;color: #ddd;border:4px solid #ddd;border-radius:100px;">
+					<svg style="transform:scale(0.3)" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="exclamation" class="svg-inline--fa fa-exclamation fa-w-6" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 512"><path fill="currentColor" d="M176 432c0 44.112-35.888 80-80 80s-80-35.888-80-80 35.888-80 80-80 80 35.888 80 80zM25.26 25.199l13.6 272C39.499 309.972 50.041 320 62.83 320h66.34c12.789 0 23.331-10.028 23.97-22.801l13.6-272C167.425 11.49 156.496 0 142.77 0H49.23C35.504 0 24.575 11.49 25.26 25.199z"></path></svg>
+				</h2><br/>
 				<strong>O tempo expirou.</strong></br>
 				<p>Para pagar finalize sua compra novamente</p><br/>
 				<a class="close" href="<?php echo get_site_url(); ?>">FECHAR</a>
@@ -129,7 +157,8 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 		.instrus h4 {font-weight: bold;}
 		</style>
 		<?php
-        if ( $timer <  time() && $this->instructions ) {
+		if ( $timer <  time() && $this->instructions ) 
+		{
             echo wpautop( wptexturize( $this->instructions ) );
         }
     }
@@ -138,8 +167,8 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 	 * check if transactions is paid at PayMee
 	 * @return bool
 	 */
-	private function check_webhook_status($obj) {
-		
+	private function check_webhook_status($obj) 
+	{
         $x_api_key = $this->get_api_key();
         $x_api_token = $this->get_api_token();
         $url = "https://" . $this->get_enviroment() . ".paymee.com.br/v1.1/transactions/" . $obj->saleToken;
@@ -158,7 +187,8 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
         $response = curl_exec($curl);
         $err = curl_error($curl);
         curl_close($curl);
-        if ($err) {
+		if ($err) 
+		{
             $this->log->debug("cURL Error #:" . $err);
             return false;
         } 
@@ -175,34 +205,38 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 	 * handle a PayMee's webhook
 	 * @return void
 	 */
-	public function confirm_payment($order_id, $payload) {
+	public function confirm_payment($order_id, $payload) 
+	{
 		
 		global $woocommerce;
 		try {
 			$order = new WC_Order($order_id);
-			if(!isset($order) || !$order->id) {
+			if(!isset($order) || !$order->id) 
+			{
 				status_header(404);
 			}
-			else if(($order->get_status() !== 'processing' && $order->get_status() !== 'completed') && 
-							$this->check_webhook_status($payload)) {
+			else if(($order->get_status() !== 'processing' && $order->get_status() !== 'completed') && $this->check_webhook_status($payload)) 
+			{
 				$order->update_status('processing');
 			}
 			status_header(200);
 		}
-		catch (Exception $e) {
+		catch (Exception $e) 
+		{
 			$this->log->debug($e->getMessage());
 			status_header(500);
 		}
 	}
 
 
-	public function paymee_pix_ipn_listener() {
+	public function paymee_pix_ipn_listener() 
+	{
 		try {
-
 			$raw_post = file_get_contents( 'php://input' );
 			$payload  = json_decode( $raw_post );
 				
-			if (isset($payload->referenceCode)) {
+			if (isset($payload->referenceCode)) 
+			{
 				$order_id = intval(str_replace($this->invoice_prefix, "", $payload->referenceCode));
 				$this->confirm_payment($order_id, $payload);
 			}
@@ -217,7 +251,8 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 	 *
 	 * @return bool
 	 */
-	public function using_supported_currency() {
+	public function using_supported_currency() 
+	{
 		return 'BRL' === get_woocommerce_currency();
 	}
 
@@ -226,7 +261,8 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 	 *
 	 * @return string
 	 */
-	public function get_api_key() {
+	public function get_api_key() 
+	{
 		return ( 'yes' == $this->sandbox ) ? $this->sandbox_api_key : $this->api_key;
 	}
 
@@ -235,14 +271,16 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 	 *
 	 * @return string
 	 */
-	public function get_api_token() {
+	public function get_api_token() 
+	{
 		return ( 'yes' == $this->sandbox ) ? $this->sandbox_api_token : $this->api_token;
 	}
 
 	/**
 	 * Get enviroment
 	 */
-	public function get_enviroment() {
+	public function get_enviroment() 
+	{
 		return ('yes' === $this->sandbox) ? 'apisandbox' : 'api';
 	}
 
@@ -253,11 +291,13 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 	 *
 	 * @return bool
 	 */
-	public function is_available() {
+	public function is_available() 
+	{
 		// Test if is valid for use.
 		$available = 'yes' === $this->get_option( 'enabled' ) && '' !== $this->get_api_key() && '' !== $this->get_api_token() && $this->using_supported_currency();
 
-		if ( 'transparent' == $this->method && ! class_exists( 'Extra_Checkout_Fields_For_Brazil' ) ) {
+		if ( 'transparent' == $this->method && ! class_exists( 'Extra_Checkout_Fields_For_Brazil' ) ) 
+		{
 			$available = false;
 		}
 
@@ -269,7 +309,8 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 	 *
 	 * @return bool
 	 */
-	public function has_fields() {
+	public function has_fields() 
+	{
 		return 'transparent' === $this->method;
 	}
 
@@ -278,8 +319,10 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 	 *
 	 * @return string
 	 */
-	protected function get_log_view() {
-		if ( defined( 'WC_VERSION' ) && version_compare( WC_VERSION, '2.2', '>=' ) ) {
+	protected function get_log_view() 
+	{
+		if ( defined( 'WC_VERSION' ) && version_compare( WC_VERSION, '2.2', '>=' ) ) 
+		{
 			return '<a href="' . esc_url( admin_url( 'admin.php?page=wc-status&tab=logs&log_file=' . esc_attr( $this->id ) . '-' . sanitize_file_name( wp_hash( $this->id ) ) . '.log' ) ) . '">' . __( 'System Status &gt; Logs', 'woocommerce-paymee' ) . '</a>';
 		}
 
@@ -289,7 +332,8 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 	/**
 	 * Initialise Gateway Settings Form Fields.
 	 */
-	public function init_form_fields() {
+	public function init_form_fields() 
+	{
 		$this->form_fields = array(
 			'enabled' => array(
 				'title'   => __( 'Enable/Disable', 'woocommerce-paymee' ),
@@ -395,7 +439,8 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 	/**
 	 * Admin page.
 	 */
-	public function admin_options() {
+	public function admin_options() 
+	{
 		$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
 		wp_enqueue_script( 'paymee-admin', plugins_url( 'assets/js/admin/admin' . $suffix . '.js', plugin_dir_path( __FILE__ ) ), array( 'jquery' ), WC_Woo_PayMee_Pix::VERSION, true );
@@ -410,7 +455,8 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 	 * @param string $title   Email title.
 	 * @param string $message Email message.
 	 */
-	protected function send_email( $subject, $title, $message ) {
+	protected function send_email( $subject, $title, $message ) 
+	{
 		$mailer = WC()->mailer();
 		$mailer->send( get_option( 'admin_email' ), $subject, $mailer->wrap_message( $title, $message ) );
 	}
@@ -423,7 +469,8 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 	 *
 	 * @return array
 	 */
-	public function process_payment( $order_id ) {
+	public function process_payment( $order_id ) 
+	{
 		$order = wc_get_order( $order_id );
 
 		//WC()->cart->empty_cart();
@@ -441,7 +488,8 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 	 * @param  WC_Order $order Order instance.
 	 * @param  array   $posted Posted data.
 	 */
-	protected function save_payment_meta_data( $order, $posted ) {
+	protected function save_payment_meta_data( $order, $posted ) 
+	{
 		$meta_data    = array();
 		$payment_data = array(
 			'type'         => '',
@@ -450,21 +498,26 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 			'link'         => '',
 		);
 
-		if ( isset( $posted->sender->email ) ) {
+		if ( isset( $posted->sender->email ) ) 
+		{
 			$meta_data[ __( 'Payer email', 'woocommerce-paymee' ) ] = sanitize_text_field( (string) $posted->sender->email );
 		}
-		if ( isset( $posted->sender->name ) ) {
+		if ( isset( $posted->sender->name ) ) 
+		{
 			$meta_data[ __( 'Payer name', 'woocommerce-paymee' ) ] = sanitize_text_field( (string) $posted->sender->name );
 		}
-		if ( isset( $posted->paymentMethod->type ) ) {
+		if ( isset( $posted->paymentMethod->type ) ) 
+		{
 			$payment_data['type'] = intval( $posted->paymentMethod->type );
 			$meta_data[ __( 'Payment type', 'woocommerce-paymee' ) ] = $this->api->get_payment_name_by_type( $payment_data['type'] );
 		}
-		if ( isset( $posted->paymentMethod->code ) ) {
+		if ( isset( $posted->paymentMethod->code ) ) 
+		{
 			$payment_data['method'] = $this->api->get_payment_method_name( intval( $posted->paymentMethod->code ) );
 			$meta_data[ __( 'Payment method', 'woocommerce-paymee' ) ] = $payment_data['method'];
 		}
-		if ( isset( $posted->paymentLink ) ) {
+		if ( isset( $posted->paymentLink ) ) 
+		{
 			$payment_data['link'] = sanitize_text_field( (string) $posted->paymentLink );
 			$meta_data[ __( 'Payment URL', 'woocommerce-paymee' ) ] = $payment_data['link'];
 		}
@@ -472,13 +525,16 @@ class WC_Woo_PayMee_Pix_Gateway extends WC_Payment_Gateway {
 		$meta_data['_WC_Woo_PayMee_Pix_payment_data'] = $payment_data;
 
 		// WooCommerce 3.0 or later.
-		if ( method_exists( $order, 'update_meta_data' ) ) {
-			foreach ( $meta_data as $key => $value ) {
+		if ( method_exists( $order, 'update_meta_data' ) ) 
+		{
+			foreach ( $meta_data as $key => $value ) 
+			{
 				$order->update_meta_data( $key, $value );
 			}
 			$order->save();
 		} else {
-			foreach ( $meta_data as $key => $value ) {
+			foreach ( $meta_data as $key => $value ) 
+			{
 				update_post_meta( $order->id, $key, $value );
 			}
 		}
